@@ -1,0 +1,23 @@
+#!/bin/sh -e
+####
+#### Strip the evil MS Word shite out of MSY's part list, thereby
+#### reducing the render time (e.g. in webkit or w3m) by an order of
+#### magnitude or more.
+{
+    echo '<html><body><table border="1" style="border-collapse: collapse">'
+    curl http://msy.com.au/Parts/PARTS_W.HTM |
+    iconv -c --from gb2312 | tr -d '\r' |
+    perl -p0 -e 's|<([^>[:space:]]+)[^>]*>|<$1>|g' | # strip line-spanning attributes
+    sed '1,/<table/d' | sed '1,/<table/d' | sed '/<\/table/,$d' | # extract second table
+    sed -r 's/&nbsp;/ /g' |       # whitespace sequences SHOULD be folded!
+    sed -r 's:</?([^/t]|t[^hrd])[^>]*>::g' # remove non-table elements
+    echo '</table></body></html>'
+} |
+
+# The LC_ALL=C uses ASCII instead of Unicode box drawing characters.
+# The -cols unwraps very long rows.
+LC_ALL=C w3m -T text/html -cols 512 |
+egrep -v '(NSW|QLD|SA).*Clearance' |
+sed -nr 's/.([^|]*)\|(.*).$/\2|\1/p' | tr -s '[:blank:]' | column -ts'|' |
+sort -nr
+
