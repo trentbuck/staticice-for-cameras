@@ -5,7 +5,7 @@
 #### magnitude or more.
 {
     echo '<html><body><table border="1" style="border-collapse: collapse">'
-    curl http://msy.com.au/Parts/PARTS_W.HTM |
+    curl -sSf http://msy.com.au/Parts/PARTS_W.HTM |
     iconv -c --from gb2312 | tr -d '\r' |
     perl -p0 -e 's|<([^>[:space:]]+)[^>]*>|<$1>|g' | # strip line-spanning attributes
     sed '1,/<table/d' | sed '1,/<table/d' | sed '/<\/table/,$d' | # extract second table
