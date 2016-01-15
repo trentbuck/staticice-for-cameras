@@ -23,7 +23,7 @@ curl -sSf http://msy.com.au/Parts/PARTS_W.HTM |
 
 # tidy seems to struggle to convert the encoding,
 # so convert it in advance & then tell tidy to both read & write UTF-8.
-# The --to ascii//translit makes grepping for inches (") easier
+# The --to ascii//translit makes grepping for inches (") easier.
 iconv -c --from gb2312 --to ascii//translit |
 sed 's/&nbsp;/ /' |             # Downgrade NBSP to CFWS.
 sed -r 's|<o:p> ?</o:p>||g' |   # Appease tidy.
