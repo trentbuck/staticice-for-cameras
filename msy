@@ -25,12 +25,11 @@ curl -sSf http://msy.com.au/Parts/PARTS_W.HTM |
 # so convert it in advance & then tell tidy to both read & write UTF-8.
 # The --to ascii//translit makes grepping for inches (") easier.
 iconv -c --from gb2312 --to ascii//translit |
-sed 's/&nbsp;/ /' |             # Downgrade NBSP to CFWS.
-sed -r 's|<o:p> ?</o:p>||g' |   # Appease tidy.
+sed 's/&nbsp;/ /g' |            # Downgrade NBSP to CFWS.
+sed 's|<o:p> \?</o:p>||g' |     # Appease tidy.
 {   tidy -asxml --numeric-entities yes -utf8 -w 0 -q --show-warnings no ||
     (($? == 1))                 # tidy warnings aren't fatal errors.
 } |
-
 sed '1,/^<html/c<html>' |       # Appease xmlstarlet (namespaces are annoying).
 xmlstarlet sel -T -t -m '//table[2]/tr' -v 'td[2]/p' -o ' ' -v 'td[1]/p' -nl |
 sort -rn |                      # Sort by descending price.
