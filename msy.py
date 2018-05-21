@@ -2,6 +2,7 @@
 import argparse
 import csv
 import datetime
+import os
 
 import lxml.html
 
@@ -26,11 +27,14 @@ def main():
                 if price % 10 == 9:
                     price += 1      # reverse deceptive pricing
                 acc.add((price, sku))
-    with open('/home/twb/Preferences/msy-data/msy.{}.csv'.format(datetime.date.today()), 'w') as f:
+    path = '/home/twb/Preferences/msy-data/msy.{}.csv'.format(datetime.date.today())
+    with open(path, 'w') as f:
         g = csv.writer(f, dialect='excel-tab')
         g.writerows(
             ('{:5}$'.format(price), sku)
             for price, sku in sorted(acc, key=fuck_youₚython))
+    os.remove('/home/twb/Desktop/msy.txt')        # legacy path
+    os.symlink(path, '/home/twb/Desktop/msy.txt')  # legacy path
 
 
 # Python won't let me use (λ: x, y: -x, y), because its λ is crippled.
