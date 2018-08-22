@@ -3,7 +3,9 @@ import argparse
 import csv
 import datetime
 import os
+import sys
 
+import lxml.etree
 import lxml.html
 
 
@@ -15,12 +17,17 @@ def main():
     acc = set()
     with open('/home/twb/Preferences/msy-data/msy.{}.err'.format(datetime.date.today()), 'w') as f:
         for row in data.xpath('//table[2]/tr'):
-            sku, price = row.xpath('td')
-            sku, price = sku.text_content().strip(), price.text_content().strip()
+            try:
+                sku, price = row.xpath('td/p/span/text()')
+            except ValueError:
+                print('IGNORING ROW WITH WRONG NUMBER OF CELLS:',
+                      lxml.etree.tostring(row, encoding=str),
+                      file=sys.stderr, flush=True)
+                continue
             sku = ' '.join(sku.split())  # flatten whitespace
             sku = sku.replace('"','in')  # e.g. 29" LCD ⇒ 29in LCD
             try:
-                price = int(price)
+                price = int(price.strip())
             except ValueError:
                 print(price, sku, file=f)  # log errors
             else:
