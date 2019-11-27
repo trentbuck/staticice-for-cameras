@@ -63,7 +63,8 @@ def main():
             for price, sku in acc)
 
     legacy_path = os.path.expanduser('~/Desktop/msy.txt')
-    os.remove(legacy_path)
+    if os.path.exists(legacy_path):
+        os.remove(legacy_path)
     os.link(path, legacy_path)
 
     tell_database(acc)
