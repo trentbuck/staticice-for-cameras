@@ -8,13 +8,27 @@ import sqlite3
 
 import lxml.etree
 import lxml.html
+import requests
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='The WINWORD.EXE-based MSY part list rends slowly. Rip it to a CSV.')
     _ = parser.parse_args()     # we don't actually use any args.
-    data = lxml.html.parse('http://msy.com.au/Parts/PARTS_W.HTM')
+
+    ## This stopped working 1 Aug 2019, because msy now requires https.
+    #data = lxml.html.parse('http://msy.com.au/Parts/PARTS_W.HTM')
+    ## Therefore, lxml can't do the downloading all on its own; we have to do it by hand.
+    ## UPDATE: ACTUALLY NO, THAT FAILS AS WELL, THE PART LIST IS JUST GONE????
+    #resp = requests.get('https://msy.com.au/Parts/PARTS_W.HTM')
+    #resp.raise_for_status()
+    #data = lxml.html.fromstring(resp.text)
+    ## This is the "new" URL?  It's 4MB long (instead of 0.5MB long), and it has all the MSO namespace crap from WINWORD still in it.  PARTS_W.HTM seems to be working for now (1 Aug 2019)
+    #    resp = requests.get('https://cdn.msy.com.au/Parts/msy.htm')
+    resp = requests.get('https://old.msy.com.au/Parts/PARTS_W.HTM')
+    resp.raise_for_status()
+    data = lxml.html.fromstring(resp.text)
+
     acc = set()
     os.chdir(os.path.expanduser('~/Preferences/msy-data'))
     with open('msy.{}.err'.format(datetime.date.today()), 'w') as f:
