@@ -115,5 +115,31 @@ def tell_database(rows):
         #  sqlite> select date('0001-01-01', 736928 || ' days', '-1 days');
 
 
+def test_plot():
+    import matplotlib.pyplot
+
+    # WELL CON-GRAT-U-FUCKING LATIONS, IT SEEMS MY date_ordinal ABOVE
+    # IS EXACTLY WHAT MATPLOTLIB.DATES USES FOR ITS INTERNAL REPRESENTATION.
+    # IMAGINE THAT.  TWO PYTHON LIBRARIES DOING THE SAME STUPID.
+    # THEREFORE WE HAVE NOTHING TO DO TO PROCESS THE DATES INTO MATPLOTLIB'S FORMAT.
+    os.chdir(os.path.expanduser('~/Preferences/msy-data'))
+    with sqlite3.connect('msy.db') as conn:
+        date_ordinals, prices = zip(*conn.execute(
+                """
+                SELECT date_ordinal,
+                       price
+                FROM prices NATURAL JOIN skus
+                WHERE sku LIKE '%KVR16N11%'  --- quick single-SKU test
+                """))
+    # fig = matplotlib.pyplot.figure().add_subplot(1,1,1, axisbg='white')  # ???
+    matplotlib.pyplot.plot_date(
+        x=date_ordinals,
+        y=prices,
+        fmt='b-',
+        label='price of KVR16N11 over time',
+        linewidth=2)
+    matplotlib.pyplot.show()
+
+
 if __name__ == '__main__':
     main()
