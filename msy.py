@@ -14,7 +14,16 @@ import requests
 def main():
     parser = argparse.ArgumentParser(
         description='The WINWORD.EXE-based MSY part list rends slowly. Rip it to a CSV.')
-    _ = parser.parse_args()     # we don't actually use any args.
+    parser.add_argument('keywords', nargs='*', help=
+                        'If present, plot price change over time for these keywords.'
+                        'If absent, update price list.')
+    args = parser.parse_args()     # we don't actually use any args.
+
+    os.makedirs(os.path.expanduser('~/Preferences/msy-data'), exist_ok=True)  # bleh
+    os.makedirs(os.path.expanduser('~/Desktop'), exist_ok=True)  # bleh
+    os.chdir(os.path.expanduser('~/Preferences/msy-data'))
+    if args.keywords:
+        return plot(*args.keywords)
 
     ## This stopped working 1 Aug 2019, because msy now requires https.
     #data = lxml.html.parse('http://msy.com.au/Parts/PARTS_W.HTM')
@@ -30,7 +39,6 @@ def main():
     data = lxml.html.fromstring(resp.text)
 
     acc = set()
-    os.chdir(os.path.expanduser('~/Preferences/msy-data'))
     with open('msy.{}.err'.format(datetime.date.today()), 'w') as f:
         for row in data.xpath('//table[2]/tr'):
             try:
@@ -115,30 +123,47 @@ def tell_database(rows):
         #  sqlite> select date('0001-01-01', 736928 || ' days', '-1 days');
 
 
-def test_plot():
+def plot(*keywords):
     import matplotlib.pyplot
+    import matplotlib.cm
+    import numpy
+
+    # fig = matplotlib.pyplot.figure().add_subplot(1,1,1, axisbg='white')  # ???
 
     # WELL CON-GRAT-U-FUCKING LATIONS, IT SEEMS MY date_ordinal ABOVE
     # IS EXACTLY WHAT MATPLOTLIB.DATES USES FOR ITS INTERNAL REPRESENTATION.
     # IMAGINE THAT.  TWO PYTHON LIBRARIES DOING THE SAME STUPID.
     # THEREFORE WE HAVE NOTHING TO DO TO PROCESS THE DATES INTO MATPLOTLIB'S FORMAT.
-    os.chdir(os.path.expanduser('~/Preferences/msy-data'))
     with sqlite3.connect('msy.db') as conn:
-        date_ordinals, prices = zip(*conn.execute(
+        skus = sorted(set(
+            sku
+            for keyword in keywords
+            for sku, in conn.execute("SELECT sku FROM skus WHERE sku LIKE '%' || ? || '%' AND sku NOT LIKE '(% Clearance%)%' ", (keyword,)
+            )))
+        # FFS don't make me choose colors by hand!
+        # https://stackoverflow.com/questions/12236566/setting-different-color-for-each-series-in-scatter-plot-on-matplotlib
+        # NOTE: matplotlib.cm.XXX means color theme named XXX.
+        colors = matplotlib.cm.rainbow(numpy.linspace(0, 1, len(skus)))
+        for sku, color in zip(skus, colors):
+            date_ordinals, prices = zip(*conn.execute(
                 """
                 SELECT date_ordinal,
                        price
                 FROM prices NATURAL JOIN skus
-                WHERE sku LIKE '%KVR16N11%'  --- quick single-SKU test
-                """))
-    # fig = matplotlib.pyplot.figure().add_subplot(1,1,1, axisbg='white')  # ???
-    matplotlib.pyplot.plot_date(
-        x=date_ordinals,
-        y=prices,
-        fmt='b-',
-        label='price of KVR16N11 over time',
-        linewidth=2)
-    matplotlib.pyplot.show()
+                WHERE sku LIKE '%' || ? || '%'
+                """, (sku,)))
+            matplotlib.pyplot.plot_date(
+                x=date_ordinals,
+                y=prices,
+                color=color,
+                fmt='b-',
+                label=sku,
+                # linewidth=2
+            )
+        matplotlib.pyplot.xlabel('Date (YYYY-MM-DD)')
+        matplotlib.pyplot.ylabel('Price (AUD)')
+        matplotlib.pyplot.legend()
+        matplotlib.pyplot.show()
 
 
 if __name__ == '__main__':
