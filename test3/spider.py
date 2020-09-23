@@ -1,6 +1,7 @@
 import scrapy
 import typing
 import pathlib
+import dataclasses              # NOTE: Python 3.7 minimum :(
 
 # FIXME: these don't error:
 #   scrapy shell https://example.com/LKJASLDKASJLKDJASD-DOES-NOT-EXIST
