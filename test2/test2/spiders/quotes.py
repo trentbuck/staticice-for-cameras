@@ -2,7 +2,7 @@ import scrapy
 import pathlib
 
 
-class QuotesSpider(scrapy.Spider):
+class X(scrapy.Spider):
     name = 'quotes'
     allowed_domains = ['quotes.toscrape.com']
     start_urls = ['https://quotes.toscrape.com/page/1/']
