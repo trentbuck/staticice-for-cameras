@@ -1,6 +1,6 @@
 GOAL: be staticice_ , except for cameras.
 
-.. _staticice:: https://staticice.com.au/cgi-bin/search.cgi?q=4TB+NAS
+.. _staticice: https://staticice.com.au/cgi-bin/search.cgi?q=4TB+NAS
 
 
 Summary of proof-of-concept experiments:
@@ -11,7 +11,7 @@ Summary of proof-of-concept experiments:
   This like staticice_ *and* steamprices_ -- it remembers and charts
   price changes over time, so you can observe long-term trends!
 
-  .. _steamprices:: https://www.steamprices.com/au/app/70#history
+  .. _steamprices: https://www.steamprices.com/au/app/70#history
 
   FIXME: I haven't cherry-picked msy into this repo yet!
 
