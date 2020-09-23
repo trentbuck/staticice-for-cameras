@@ -18,10 +18,10 @@ class X(scrapy.Spider):
         # FIXME: when xpath has >1 match, .get() cheerfully returns the first.
         # How do I get exceptions for both cases?
         for quote_etree in response.xpath('//*[@itemscope]'):
-            yield {
-                'author': quote_etree.xpath('.//*[@itemprop="author"]/text()').get(),
-                'text': quote_etree.xpath('.//*[@itemprop="text"]/text()').get(),
-                'tags': quote_etree.xpath('.//*[@class="tag"]/text()').getall()}
+            yield Quote(
+                author=quote_etree.xpath('.//*[@itemprop="author"]/text()').get(),
+                text=quote_etree.xpath('.//*[@itemprop="text"]/text()').get(),
+                tags=quote_etree.xpath('.//*[@class="tag"]/text()').getall())
 
         # Recursively descend the next page.
         # Follow the "next page" link
@@ -29,3 +29,11 @@ class X(scrapy.Spider):
             yield scrapy.Request(
                 response.urljoin(next_url),
                 callback=self.parse)
+
+
+
+@dataclasses.dataclass
+class Quote:
+    author: str
+    text: str
+    tags: list
