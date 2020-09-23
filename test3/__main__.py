@@ -21,3 +21,13 @@ proc = scrapy.crawler.CrawlerProcess(
 )
 proc.crawl(crawler_or_spidercls=test3.spider.X)
 proc.start()
+
+# Bare minimum convert sqlite3 to xlsx
+import xlsxwriter
+import sqlite3
+with xlsxwriter.Workbook('tmp.xlsx') as workbook:
+    worksheet = workbook.add_worksheet()
+    worksheet.write_row('A1', ['foo', 'bar', 'baz'])  # FIXME: pull headings db
+    with sqlite3.connect('tmp.db') as conn:
+        for i, row in enumerate(conn.execute('SELECT * FROM quotes').fetchall()):
+            worksheet.write_row(f'A{2+i}', row)
