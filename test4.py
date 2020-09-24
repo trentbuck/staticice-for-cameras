@@ -42,17 +42,19 @@ def mystrip(s: str, prefix='', suffix='') -> str:
         s = s[:-len(suffix)]
     return s
 
-with sqlite3.connect('tmp.db') as conn:
-    conn.execute('PRAGMA journal_mode = WAL')
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS SKUs (
-    SKU   INTEGER PRIMARY KEY,
-    type  TEXT NOT NULL,
-    make  TEXT NOT NULL,
-    model TEXT NOT NULL,
-    price INTEGER NOT NULL    ---- in AUD cents, e.g. 12345 means A$123.45
-    )
-    """)
+# FIXME: don't just dangle the connection indefinitely!
+# FIXME: isolation_level=None means AUTOCOMMIT instead of implicit transactions -- yukky!
+conn = sqlite3.connect('test4.db', isolation_level=None)
+conn.execute('PRAGMA journal_mode = WAL')
+conn.execute("""
+CREATE TABLE IF NOT EXISTS SKUs (
+SKU   INTEGER PRIMARY KEY,
+type  TEXT NOT NULL,
+make  TEXT NOT NULL,
+model TEXT NOT NULL,
+price INTEGER NOT NULL    ---- in AUD cents, e.g. 12345 means A$123.45
+)
+""")
 
 
 def walk_sitemap(base_url='https://jbhifi.com.au/sitemap.xml'):
@@ -70,7 +72,21 @@ def walk_sitemap(base_url='https://jbhifi.com.au/sitemap.xml'):
         walk_sitemap(child_sitemap_url)
 
 
-def scrape_product(base_url='https://www.jbhifi.com.au/products/nikon-af-s-dx-nikkor-35mm-f-1-8g-lens'):
+# It is slow (time expensive) to re-download pages we've seen.
+# It is big (space expensive) to remember what we've seen, but
+# that is an overall win.
+# If the URLs had the SKUs in them, this would be MUCH cheaper on the disk.
+# FIXME: just putting (a tuned) squid in front would probably work better!
+# FIXME: possibly remember WHEN we last looked, and remember that?
+def scrape_product(base_url):
+    conn.execute('CREATE TABLE IF NOT EXISTS BTDT (url TEXT PRIMARY KEY)')
+    already_fetched = bool(conn.execute('SELECT 1 FROM BTDT WHERE url = ?', (base_url,)).fetchall())
+    if not already_fetched:
+        _scrape_product(base_url)
+        conn.execute('INSERT INTO BTDT (url) VALUES (?)', (base_url,))
+
+
+def _scrape_product(base_url):
     print(base_url, flush=True)  # DEBUGGING
     resp = sess.get(base_url)
     resp.raise_for_status()
@@ -81,22 +97,28 @@ def scrape_product(base_url='https://www.jbhifi.com.au/products/nikon-af-s-dx-ni
         for line in s.splitlines()
         if line.startswith('var meta = ')]
     meta_dict = json.loads(meta_line)['product']
+    # GIVE UP early if this product is definitely not camera-related.
+    # e.g. definitely not "CAMERAS", but also not "ACCESSORIES", "VISUAL", &c??
+    if meta_dict['type'] in shit_types:
+        return None
     # Flatten the singleton (I hope) "variants" down.
     assert len(meta_dict['variants']) == 1
     meta_dict.update(meta_dict['variants'][0])
     del meta_dict['variants']
-    with sqlite3.connect('tmp.db') as conn:
-        conn.execute(
-            """
-            REPLACE INTO SKUs
-            (SKU, type, make, model, price)
-            VALUES
-            (:sku, :type, :vendor, :name, :price)""",
-            meta_dict)
+    conn.execute(
+        """
+        INSERT INTO SKUs
+        (SKU, type, make, model, price)
+        VALUES
+        (:sku, :type, :vendor, :name, :price)""",
+        meta_dict)
+
+
+shit_types = ('MUSIC', 'MOVIES', 'SMALL APPLIANCES', 'WHITEGOODS', 'GAMES SOFTWARE', 'GAMES HARDWARE')
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
-    scrape_product()
+    scrape_product('https://www.jbhifi.com.au/products/nikon-af-s-dx-nikkor-35mm-f-1-8g-lens')
     walk_sitemap()
