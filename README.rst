@@ -5,21 +5,30 @@ GOAL: be staticice_ , except for cameras.
 
 Summary of proof-of-concept experiments:
 
-* msy - a fully working scraper for MSY's parts list, complete with
+* msy__ - a fully working scraper for MSY_\ 's parts list, complete with
   example output, and a Functional Requirements document.
 
   This like staticice_ *and* steamprices_ -- it remembers and charts
   price changes over time, so you can observe long-term trends!
 
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/4TB-NAS.pdf
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/msy.2020-08-25.csv
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/msy.db
+
+  .. __: blob/master/msy.py
+  .. _MSY: https://www.msy.com.au
   .. _steamprices: https://www.steamprices.com/au/app/70#history
 
-  FIXME: I haven't cherry-picked msy into this repo yet!
+  FIXME: haven't put the FR up yet.
 
-* test2 - follow the scrapy_ tutorial, basic poking around scrapy ::
+* test2__ - follow the scrapy_ tutorial, basic poking around scrapy ::
 
       cd test2 && scrapy crawl quotes
 
-* test3 - work out how to make scrapy into a "normal" app.
+  .. __: tree/master/test2
+  .. _scrapy: https://scrapy.org
+
+* test3__ - work out how to make scrapy into a "normal" app.
   I couldn't quite reduce it to a single file, so ::
 
       python3 -m test3      # "run" the directory as-is
@@ -29,7 +38,9 @@ Summary of proof-of-concept experiments:
   Also work out how to turn the database able into an Excel
   spreadsheet (xlsx), for showing to regular people.
 
-* test3-jb - because JB's sitemap has *ALL* products, not just cameras,
+  .. __: tree/master/test3
+
+* test3-jb__ - because JB's sitemap has *ALL* products, not just cameras,
   I thought I'd ignore it and instead try to read from their
   user-facing pages like https://www.jbhifi.com.au/collections/cameras
 
@@ -47,7 +58,9 @@ Summary of proof-of-concept experiments:
   So for now give up on that, and instead just read EVERY product, and
   throw away 98% of them (non-camera ones).
 
-* test4.py - go back to doing scraping the "lo-fi" way, with no
+  .. __: tree/master/test3-jb
+
+* `test4.py`__ - go back to doing scraping the "lo-fi" way, with no
   confusing OO middleware.  scrapy is *3 MEGABYTES* of code, we
   should be able to do this in about *0.04 MEGABYTES*.
 
@@ -55,10 +68,24 @@ Summary of proof-of-concept experiments:
   * Add a quick hack to discard all the DVDs and CDs.
   * Add a quick hack to NEVER re-scrape any product.
 
-* test5 - have a go at using scrapy's helper code *specifically
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/test4.db
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/test4.xlsx
+
+  .. __: blob/master/test4.py
+
+* test5__ - have a go at using scrapy's helper code *specifically
   designed* to deal with sitemap.xml.
 
   FIXME: not written yet.
 
+  .. __: tree/master/test5
 
-.. _scrapy: https://scrapy.org
+* `sqlite2xlsx.py`__ - since sqlitebrowser_ is a bit too simple and
+  lobase + JDBC is really tedious, make a bare-bones report generator
+  for non-IT stakeholders.
+
+    python3 sqlite2xlsx.py test4.db -q 'SELECT * FROM SKUs WHERE type = "CAMERAS" ORDER BY make, price DESC'
+
+    .. _sqlitebrowser: https://sqlitebrowser.org/
+
+  .. __: blob/master/sqlite2xlsx.py
