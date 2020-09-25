@@ -12,7 +12,7 @@ Summary of proof-of-concept experiments:
   price changes over time, so you can observe long-term trends!
 
   * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/4TB-NAS.pdf
-  * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/msy.2020-08-25.csv
+  * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/msy.2020-08-25.tsv
   * https://github.com/trentbuck/staticice-for-cameras/blob/master/msy-data/msy.db
 
   .. _MSY: https://www.msy.com.au
@@ -63,7 +63,8 @@ Summary of proof-of-concept experiments:
   * Add a quick hack to NEVER re-scrape any product.
 
   * `<test4.db>`_
-  * https://github.com/trentbuck/staticice-for-cameras/blob/master/test4.xlsx
+  * `<test4.xlsx>`_
+  * `<test4.csv>`_
 
 * `<test5>`_ - have a go at using scrapy's helper code *specifically
   designed* to deal with sitemap.xml.
