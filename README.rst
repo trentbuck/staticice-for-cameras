@@ -69,7 +69,12 @@ Summary of proof-of-concept experiments:
 * `<test5>`_ - have a go at using scrapy's helper code *specifically
   designed* to deal with sitemap.xml.
 
-  FIXME: not written yet.
+  * upstream CSV writer (instead of database hack).
+  * upstream throttling options
+  * Basic scraper for digidirect.com.au.
+  * Initial "don't rescrape the same URL repeatedly" code.
+
+  Partial output: `<test5.csv>`_ (~4000 of ~10000 SKUs)
 
 * `<sqlite2xlsx.py>`_ - since sqlitebrowser_ is a bit too simple and
   lobase + JDBC is really tedious, make a bare-bones report generator
